@@ -24,6 +24,10 @@ int LEDA=27;
 int LEDV=26;
 int LEDR=29;
 char color = '0';
+const int fotoResistor1 = A2;
+const int fotoResistor2 = A3; //Pin del LDR
+int V1;
+int V2;
 int izquierda1= 24; 
 int izquierda2= 25;
 //FRENTE
@@ -97,6 +101,7 @@ void avanzar(){
 }
 
 boolean unidadArreglo = true;
+
 void arreglarUnidad(){
  
   while(unidadArreglo != false){
@@ -105,7 +110,7 @@ void arreglarUnidad(){
    digitalWrite(derecha2, LOW);
    digitalWrite(izquierda2, LOW);
    digitalWrite(izquierda1, HIGH);
-     if (getDistanceF() % 37 == 0 || getDistanceF() % 36 == 0  getDistanceF() %35  == 0 || getDistanceF() % 38 == 0 || getDistanceF() % 39 == 0  ){
+    if(getDistanceF() % 37 == 0 || getDistanceF() % 36 == 0 || getDistanceF() % 38 == 0 || getDistanceF() % 39 == 0 || getDistanceF() % 35 == 0  ){
     Detener();
     unidadArreglo = false;
   }
@@ -499,7 +504,7 @@ int getDistance(int t1,int ec1){
         Detener();
       }
    }else{
-    if (getDistanceL();<15){
+    if (getDistanceL()<15){
     giroejeR();
     Detener();
      atras();
@@ -517,6 +522,8 @@ int getDistance(int t1,int ec1){
    }
    
 }
+
+
 void calibrarcolor(){
      //CALIBRACION
         
@@ -665,14 +672,14 @@ void calibrarcolor(){
     }
  
 bool sensorLinea(){
-  int valor1 = analogRead(A1);
-  int valor2 = analogRead(A0);
+  V1 = analogRead(A1);
+ V2 = analogRead(A0);
   Serial.print("1-->");
-  Serial.println(valor1);
+  Serial.println(V1);
   Serial.print("2-->");
-  Serial.println(valor2);
+  Serial.println(V2);
   delay(1000);
-  if((valor1 > 500)&&(valor2 > 500)){
+  if((V1 > 550)||(V2 > 550)){
     return true;
   }
   else{
@@ -703,7 +710,10 @@ bool sensorbola(){
 
 void loop()
 { 
-  
+
+  while(true){
+    sensorLinea();
+  }
   
  delay(2000);
 
