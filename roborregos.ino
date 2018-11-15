@@ -20,9 +20,10 @@ int frecuenciaAzul = 0;
 int rojo = 0;
 int azul = 0;
 int verde = 0;
-int LEDA=27;
-int LEDV=26;
-int LEDR=29;
+int LEDA=7;
+int LEDV=6;
+int LEDR=5;
+int LEDAM = 4;
 char color = '0';
 const int fotoResistor1 = A2;
 const int fotoResistor2 = A3; //Pin del LDR
@@ -40,14 +41,25 @@ const int Echo3 = 48;   //Pin digital 3 para el echo del sensor
 const int Trigger2 = 50;   //Pin digital 2 para el Trigger del sensor
 const int Echo2 = 52;   //Pin digital 3 para el echo del sensor
 
-int potenciamotor1=2;
-int potenciamotor=3;
+int potenciamotor1=3;
+int potenciamotor=2;
 int fase=1;
 int rampa=0;
 bool derecha=false;
 int count=0;
 int primerCuenta = 0;
 int segundaCuenta = 0;
+
+boolean anteriorI = 0;    
+boolean actualI = 0; 
+int contadorI = 0; 
+int sensorEncoderI = 19;
+boolean anteriorD = 0;    
+boolean actualD = 0; 
+int contadorD = 0; 
+int sensorEncoderD =18 ;
+
+
 
 void setup()
 {
@@ -79,6 +91,12 @@ void setup()
   pinMode(Echo2, INPUT);  //pin como entrada
   pinMode(Trigger3, OUTPUT); //pin como salida
   pinMode(Echo3, INPUT);  //pin como entrada
+  
+  
+  pinMode(sensorEncoderI,INPUT_PULLUP);
+   pinMode(sensorEncoderD,INPUT_PULLUP);
+   attachInterrupt(digitalPinToInterrupt(sensorEncoderI),cambioEncoderI, CHANGE);
+   attachInterrupt(digitalPinToInterrupt(sensorEncoderD),cambioEncoderD, CHANGE);        
 
 }
 
@@ -91,12 +109,15 @@ void cambiarpotenciamotores(int x,int dif){
 }
 void avanzar(){
 
-  cambiarpotenciamotores(125,40);
+  cambiarpotenciamotores(130,40);
+  while(contadorI<30 && contadorD<25){
    digitalWrite(derecha1, HIGH);
    digitalWrite(derecha2, LOW);
    digitalWrite(izquierda2, LOW);
    digitalWrite(izquierda1, HIGH);
-   delay(950);
+  }
+  contadorI = 0;
+  contadorD = 0;
   
 }
 
@@ -115,6 +136,8 @@ void arreglarUnidad(){
     unidadArreglo = false;
   }
   }
+  contadorI = 0;
+  contadorD = 0;
   
 }
 void avanzarFase2(){
@@ -124,6 +147,7 @@ void avanzarFase2(){
    digitalWrite(derecha1, HIGH);
    digitalWrite(izquierda1, HIGH);
    digitalWrite(izquierda2, LOW);
+   
 
   
 }
@@ -136,75 +160,131 @@ void atras(){
    digitalWrite(izquierda2, HIGH);
    digitalWrite(izquierda1, LOW);
   delay(1000);
+  contadorI = 0;
+  contadorD = 0;
 }
 void avanzarPoquito(){
 
 cambiarpotenciamotores(90,18);
+while(contadorI<7 && contadorD<5){
    digitalWrite(derecha2, LOW);
    digitalWrite(derecha1, HIGH);
    digitalWrite(izquierda1, HIGH);
    digitalWrite(izquierda2, LOW);
-   delay(200);
 }
+   contadorI = 0;
+  contadorD = 0;
+}
+
 void atrasPoquito(){
 cambiarpotenciamotores(90,18);
+
+while(contadorI<7 && contadorD<5){
  digitalWrite(derecha1, LOW);
    digitalWrite(derecha2, HIGH);
    digitalWrite(izquierda2, HIGH);
    digitalWrite(izquierda1, LOW);
-   delay(300);
+   }
+  contadorI = 0;
+  contadorD = 0;
 
 }
+
 void giroejeL(){
   
-      /*cambiarpotenciamotores(0,0);
-    delay(1000);
-    */
+     
     cambiarpotenciamotores(250,80);
-  // cambiarpotenciamotores(170,-80);
+  while(contadorI<=19 && contadorD<22){
    digitalWrite(derecha2, HIGH);
    digitalWrite(derecha1, LOW);
    digitalWrite(izquierda1, HIGH);
    digitalWrite(izquierda2, LOW);
-   delay(490);
+  }
+  contadorI = 0;
+  contadorD = 0;
    
-   
-   /* while(getDistanceF()<25){
-    cambiarpotenciamotores(240,0);
-    }ffase
-   
-   delay(300); 
-    avanzar();
-    */
+ 
 }
 void giroejeR(){
   
     
    cambiarpotenciamotores(170,-80);
-   
+   while(contadorI<=22 && contadorD<19){
    digitalWrite(derecha2, LOW);
    digitalWrite(derecha1, HIGH);
    digitalWrite(izquierda1, LOW);
    digitalWrite(izquierda2, HIGH);
-   delay(490);
-  /*while(getDistanceF()<25){
-   cambiarpotenciamotores(240,0);
-    }
-   delay(300); 
-    avanzar();
-    */
+   }
+   contadorI = 0;
+  contadorD = 0;
+ 
 }
 
 int Detener(){
   cambiarpotenciamotores(0,0);
    delay(1000);
+   contadorI = 0;
+  contadorD = 0;
+}
+
+
+
+boolean encoderI(boolean anteriorI) {
+  delay(1);
+
+   actualI = digitalRead(sensorEncoderI);
+      if (anteriorI != actualI){
+            delay(6);
+            actualI = digitalRead(sensorEncoderI);
+      }
+   return actualI;
+ }
+   
+boolean encoderD(boolean anteriorD) {
+  delay(1);
+ actualD = digitalRead(sensorEncoderD);
+   if (anteriorD != actualD) {
+      delay(6);
+      actualD = digitalRead(sensorEncoderD);
+   }
+   return actualD;
+} 
+ 
+void cambioEncoderI(){
+  
+  actualI = encoderI(anteriorI); 
+  
+
+  if ( anteriorI == 0 && actualI == 1) {
+         contadorI++;              
+        
+         Serial.println("Izquierda");          
+         Serial.println(contadorI);
+  }
+  
+    anteriorI = actualI;  
+}
+
+void cambioEncoderD(){
+  
+  actualD = encoderD(anteriorD); 
+  
+
+  if ( anteriorD == 0 && actualD == 1) {
+         contadorD++;              
+      
+         Serial.println("Derecha");  
+         Serial.println(contadorD);
+  }
+  
+    anteriorD = actualD; 
 }
 
 boolean atras1=false;
 
 void MovimientoUnidadDelayFASE1(){
 
-   if(getDistanceF()>10){
+   if(getDistanceF()>12){
    avanzar();
     Detener(); 
     arreglarUnidad();
@@ -212,10 +292,10 @@ void MovimientoUnidadDelayFASE1(){
  }
  
  
-    if(getDistanceF()<=10){
+    if(getDistanceF()<=12){
       Detener();
       
-      if((getDistanceL()<8) && (getDistanceR()<8)){
+      if((getDistanceL()<15) && (getDistanceR()<15)){
         giroejeR();
         Detener();
         atras();
@@ -225,7 +305,7 @@ void MovimientoUnidadDelayFASE1(){
         Detener(); 
         }
         
-        else if(getDistanceL()<8){
+        else if(getDistanceL()<25){
           
           giroejeR();
           Detener();
@@ -249,61 +329,75 @@ void MovimientoUnidadDelayFASE1(){
     }
 
 }
-void MovimientoUnidadDelay(){
 
-   if(getDistanceF()>15 && getDistanceR()<18){
-    
-   avanzar();
- }else if(getDistanceF()>15 && getDistanceR()>17){
-         giroejeR();
-           Detener();
-          avanzar();
-           Detener();
-        return;
-  }
- 
- 
-    Detener();  
- 
- 
-    if(getDistanceF()<=15){
-      
-      
-      if((getDistanceL()<15) && (getDistanceR()<15)){
-        giroejeR();
+void MovimientoUnidadDelayFASE2(){
+  Serial.print("Posx:");
+  Serial.println(fase2x);
+  Serial.print("Posy:");
+  Serial.println(fase2y);
+  
+  if(fase2[fase2x][fase2y]!=1 && !(fase2x==0 && positivoy) ){
+        giroejeLFASE2(); 
         Detener();
-        }
-        
-        else if(getDistanceL()<getDistanceR()){
-          if(getDistanceL()<20){
-            atras1=true;
-            }
-            Serial.println("HOLAAA");
-            Serial.println(getDistanceL());
-          giroejeR();
-          Detener();
-          if(atras1){
-            atras1=false;
-            atras();
-             Detener();
-            }
-          }
-          
-          else{
-             if(getDistanceR()<20){
-            atras1=true;
-            }
-             Serial.println("HOLAAA");
-            Serial.println(getDistanceR());
-            giroejeL();
-             Detener();
-               if(atras1){
-            atras1=false;
-            atras();
-             Detener();
-            }   
-           }
     }
+    
+    if(fase2x==0 && fase2y==4 && positivoy){
+           giroejeLFASE2(); 
+            Detener();
+            avanzar();
+            Detener();
+            fase++;
+            return;
+         }
+   if(getDistanceF()>15){
+  
+  while(contadorI<= 29 && contadorD<=24 && !sensorLinea()){
+   
+    cambiarpotenciamotores(130,40);
+   digitalWrite(derecha1, HIGH);
+   digitalWrite(derecha2, LOW);
+   digitalWrite(izquierda2, LOW);
+   digitalWrite(izquierda1, HIGH);
+    }
+    Detener();
+    if(contadorD>=19 || contadorI>=23){
+        if(positivox){
+          fase2x++;      
+          }else if(negativox){
+            fase2x--;  
+            }else if(negativoy){
+              fase2y--;
+              }else{
+                fase2y++;
+                } 
+      }
+     contadorI = 0;
+    contadorD = 0;
+      if(sensorLinea()){
+                 avanzarPoquito();
+                 Detener();
+                 if(!sensorLinea()){
+                /*  fase++;
+                  atrasPoquito();
+                  return;
+                  }else*/
+                 fase2[fase2x][fase2y]=1;
+                 atrasPoquito();
+                 Detener();
+                 giroejeRFASE2();   
+                    Detener();
+                    }
+        }else{
+           giroejeRFASE2();  
+           Detener(); 
+          }
+  
+      
+}else {
+  fase2[fase2x][fase2y]=1;
+   giroejeRFASE2(); 
+   Detener();
+  }
 
 }
 void giroejeLFASE2(){
@@ -343,129 +437,6 @@ void   giroejeRFASE2(){
   int direccionx=0;
 
   
-void MovimientoUnidadDelayFASE2(){
-  direcciony=-1;
-  direccionx=-1;
-  if(positivoy){
-    direcciony=0;
-    }else if (negativoy)
-    {direcciony=1;}else if(positivox){direccionx=0;}else{direccionx=1;}
-  if(fase2[fase2x][fase2y]!=1){
-        giroejeLFASE2();     
-    }
-   if(getDistanceF()>10){
-  int count=0;
-  while(count<= 19 && sensorLinea() && getDistanceF()>10){
-    count++;
-    cambiarpotenciamotores(125,40);
-   digitalWrite(derecha1, HIGH);
-   digitalWrite(derecha2, LOW);
-   digitalWrite(izquierda2, LOW);
-   digitalWrite(izquierda1, HIGH);
-    delay(50);
-    }
-    if(count>10){
-        if(positivox){
-            fase2[fase2x][fase2y]=1;
-          fase2x++;
-          
-          }else if(negativox){
-              fase2[fase2x][fase2y]=1;
-            fase2x--;  
-            }else if(negativoy){
-              fase2y--;
-              }else{
-                fase2y++;
-                } 
-      }
-   Detener();
-  if(count!=19)
-  avanzarPoquito();
-  else
-  if(getDistanceF()<=10){
-    if(positivox){
-      giroejeLFASE2();
-      }else if(negativox){
-        giroejeRFASE2();
-        }
-    }else{
-      return;
-      }
-
-  Detener();
-  if(sensorLinea()){
-   atrasPoquito();
-     fase++;
-     return;
-    }else{
-    atrasPoquito();
-      if(direcciony==1){
-          if(negativox){
-              giroejeRFASE2();
-            }
-            if(positivox){
-              giroejeLFASE2();
-              }
-        }else if(direcciony==0){
-            if(positivox){
-              giroejeRFASE2();
-            }
-          if(negativox){
-              giroejeLFASE2();
-              }
-          }else if(direccionx==1){
-            if(negativoy){
-              giroejeRFASE2();
-            }
-            if(positivoy){
-              giroejeLFASE2();
-              }
-            }else{
-               if(positivoy){
-              giroejeRFASE2();
-            }
-          if(negativoy){
-              giroejeLFASE2();
-              }
-              }
-      }
-  
-      }else{
-        fase2[fase2x][fase2y]=1;
-              if(direcciony==1){
-          if(negativox){
-              giroejeRFASE2();
-            }
-            if(positivox){
-              giroejeLFASE2();
-              }
-        }else if(direcciony==0){
-            if(positivox){
-              giroejeRFASE2();
-            }
-          if(negativox){
-              giroejeLFASE2();
-              }
-          }else if(direccionx==1){
-            if(negativoy){
-              giroejeRFASE2();
-            }
-            if(positivoy){
-              giroejeLFASE2();
-              }
-            }else{
-               if(positivoy){
-              giroejeRFASE2();
-            }
-          if(negativoy){
-              giroejeLFASE2();
-              }
-              }
-      }
-      
-}
-
-
 
 int getDistance(int t1,int ec1){
      long t; //timepo que demora en llegar el eco
@@ -481,22 +452,27 @@ int getDistance(int t1,int ec1){
        d = t/59; 
        return d;
   }
-  int getDistanceF(){
+int getDistanceF(){
      return getDistance(Trigger1,Echo1);
     }
-    int getDistanceR(){
+    
+int getDistanceR(){
      return getDistance(Trigger2,Echo2);
     }
-    int getDistanceL(){
+    
+int getDistanceL(){
      return getDistance(Trigger3,Echo3);
     }
-  void MovimientoLaberinto(){
+    
+void MovimientoLaberinto(){
     
    if(getDistanceR() <15){
       if (getDistanceF() >25){
         avanzar();
         Detener();
+        
       }else{
+        
         giroejeL();
         Detener();
         atras();
@@ -504,6 +480,7 @@ int getDistance(int t1,int ec1){
         Detener();
       }
    }else{
+    
     if (getDistanceL()<15){
     giroejeR();
     Detener();
@@ -513,6 +490,7 @@ int getDistance(int t1,int ec1){
     avanzar();
     Detener();
     }
+    
     else{
       giroejeR();
       Detener();
@@ -561,10 +539,13 @@ void calibrarcolor(){
         
           // Constrains??
             }
-    char getColor(){
+char getColor(){
           digitalWrite(S2,LOW);
           digitalWrite(S3,LOW);
-          
+           digitalWrite(LEDR,LOW);
+           digitalWrite(LEDA,LOW);
+            digitalWrite(LEDV,LOW);
+               digitalWrite(LEDAM,LOW);
           // Se lee el valor de la frecuencia 
           frecuenciaRoja = pulseIn(out, LOW);
           
@@ -616,8 +597,8 @@ void calibrarcolor(){
          Serial.println("¡Color Amarillo!");
             color = 'y';
             
-              digitalWrite(LEDA,HIGH);
-            digitalWrite(LEDV,HIGH);
+              digitalWrite(LEDAM,HIGH);
+            
             return color;
          }
        
@@ -633,15 +614,13 @@ void calibrarcolor(){
          Serial.print(verde);
         
         //Impresion de los valores de cada color
-         
-          digitalWrite(LEDR,LOW);
-           digitalWrite(LEDA,LOW);
-            digitalWrite(LEDV,LOW);
-            
+       
+
                if (rojo>azul && rojo>verde){
                 digitalWrite(LEDR,HIGH);
           Serial.println("¡Color Rojo!");
           color = 'r';
+           return color;
           delay(200);
           }
           
@@ -649,6 +628,7 @@ void calibrarcolor(){
             digitalWrite(LEDA,HIGH);
             Serial.println("¡Color Azul!");
             color = 'a';
+             return color;
               delay(200);
               
           }
@@ -657,29 +637,39 @@ void calibrarcolor(){
             digitalWrite(LEDV,HIGH);
             Serial.println("¡Color Verde!");
             color = 'v';
+             return color;
+             
               delay(200);
           }
           
           if(azul==rojo && rojo==verde && rojo==0){
              digitalWrite(LEDV,HIGH);
               digitalWrite(LEDA,HIGH);
+              digitalWrite(LEDR,HIGH);
+              digitalWrite(LEDAM,HIGH);
               color = 'n';
              //  digitalWrite(LEDR,HIGH);
+            return color;
             }
 
           
             return color;
     }
- 
+ void rampa1(){
+  cambiarpotenciamotores(200,50);
+   digitalWrite(derecha2, LOW);
+   digitalWrite(derecha1, HIGH);
+   digitalWrite(izquierda1, HIGH);
+   digitalWrite(izquierda2, LOW);
+   delay(12000);
+ }
 bool sensorLinea(){
-  V1 = analogRead(A1);
+
  V2 = analogRead(A0);
-  Serial.print("1-->");
-  Serial.println(V1);
   Serial.print("2-->");
   Serial.println(V2);
   delay(1000);
-  if((V1 > 550)||(V2 > 550)){
+  if((V2 > 415)){
     return true;
   }
   else{
@@ -688,7 +678,7 @@ bool sensorLinea(){
 }     
 bool sensorbola(){
    
-   int value = 0;  
+  int value = 0;  
   int time = pulseIn(37,LOW);  
   if(time>2000) // Checking if the Start Bit has been received. Start Bit Duration is 2.4ms  
   {  
@@ -707,21 +697,16 @@ bool sensorbola(){
           return false;
 }
 
-
+int countbola=0;
 void loop()
-{ 
+{   
 
-  while(true){
-    sensorLinea();
-  }
-  
  delay(2000);
 
-  
   if(getColor()=='a'){
     fase=2;
-    }else if(sensorLinea()){
-     fase=3;
+    }else if(getColor()=='y'){
+     fase=1;
       }else{
         fase=3;
         }
@@ -732,7 +717,16 @@ void loop()
   if(fase==1){
       avanzar();
       Detener();
+
+      boolean sensorbola1=false;
+      while(countbola<50){
         if(sensorbola()){
+          sensorbola1=true;
+          }
+        delay(25);
+        countbola++;
+        }
+        if(!sensorbola1){
             giroejeR();
         }
         else{
@@ -751,8 +745,6 @@ void loop()
  while(fase==2){      
        
              MovimientoUnidadDelayFASE2();
-         
-          
  }
  Serial.println("Fase: ");
  Serial.print(fase);
@@ -765,10 +757,6 @@ void loop()
           break;
       }
    }
-cambiarpotenciamotores(200,50);
-   digitalWrite(derecha2, LOW);
-   digitalWrite(derecha1, HIGH);
-   digitalWrite(izquierda1, HIGH);
-   digitalWrite(izquierda2, LOW);
+rampa1();
 
 }
